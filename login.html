@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+</head>
+<body>
+    <h1>Login</h1>
+
+    <!-- Login form -->
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        
+        <button type="submit">Login</button>
+    </form>
+
+    <script>
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Extract username and password from the form
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Validate username and password (You can implement your own validation logic)
+
+            // Redirect to index.html with username as a query parameter
+            window.location.href = `middlepage.html?username=${username}`;
+        });
+    </script>
+</body>
+</html>
