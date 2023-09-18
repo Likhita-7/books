@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publishers List</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Publishers List</h1>
+    
+    <!-- Form to add a new publisher -->
+    <form id="addPublisherForm">
+        <label for="publisherName">Publisher Name:</label>
+        <input type="text" id="publisherName" name="publisherName" required>
+        
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required>
+        
+        <label for="establishedYear">Established Year:</label>
+        <input type="number" id="establishedYear" name="establishedYear" required>
+        
+        <button type="submit">Add Publisher</button>
+    </form>
+    <br>
+    
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Publisher ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Established Year</th>
+            </tr>
+        </thead>
+        <tbody id="publisherList">
+            <!-- Publisher data will be inserted here -->
+        </tbody>
+    </table>
+    
+    <div id="pagination">
+        <button id="prevPage">Previous Page</button>
+        <button id="nextPage">Next Page</button>
+    </div>
+    
+    <script>
+		// Pagination variables
+        const itemsPerPage = 10;
+        let currentPage = 1;
+        
+        
+		
+		 // Handle form submission to add a new publisher
+        $('#addPublisherForm').submit(function (event) {
+            event.preventDefault();
+
+            const publisherName = $('#publisherName').val();
+            const location = $('#location').val();
+            const establishedYear = $('#establishedYear').val();
+
+            // Make an AJAX POST request to add a new publisher
+            $.ajax({
+                type: 'POST',
+                url: '/publish', // Specify the endpoint to add a new publisher
+                data: {
+                    publisherName: publisherName,
+                    location: location,
+                    establishedYear: establishedYear
+                },
+                success: function (newPublisher) {
+                    // Add the new publisher to the table
+                    const row = `
+                        <tr id="publishRow-${newPublisher.publisher_id}">
+                            <td>${newPublisher.publisher_id}</td>
+                            <td>${newPublisher.publisher_name}</td>
+                            <td>${newPublisher.location}</td>
+                            <td>${newPublisher.established_year}</td>
+                            <td>
+                                <button onclick="deleteEmployee(${newPublisher.publisher_id})">Delete</button>
+                            </td>
+                        </tr>`;
+                    $('#publisherList').append(row);
+
+                    // Clear the form fields after successful submission
+                    $('#publisherName').val('');
+                    $('#location').val('');
+                    $('#establishedYear').val('');
+                },
+                error: function (error) {
+                    console.error('Error adding publisher:', error);
+                }
+            });
+        });
+		
+		
+		
+		//function create  delete button
+		function createDeleteButton(publisherId) {
+            const button = document.createElement('button');
+            button.textContent = 'Delete';
+            button.addEventListener('click', function () {
+                deleteEmployee(publisherId);
+            });
+            return button;
+        }
+        
+        function deleteEmployee(publisherId) {
+            // Make an AJAX DELETE request to delete the employee by ID
+            $.ajax({
+                type: 'DELETE',
+                url: `/publish/${publisherId}`,  // Specify the endpoint to delete an employee by ID
+                success: function () {
+                    // Remove the row from the table on success
+                    $(`#publishRow-${publisherId}`).remove();
+                },
+                error: function (error) {
+                    console.error('Error deleting publisher:', error);
+                }
+            });
+        }
+        // For displaying publishers' data using AJAX GET call
+        $.ajax({
+            type: 'GET',
+            url: '/publish',
+            success: function (data) {
+                const publishersList = $('#publisherList');
+                data.forEach(publisher => {
+                    const row = `
+                        <tr id="publishRow-${publisher.publisher_id}">
+                            <td>${publisher.publisher_id}</td>
+                            <td>${publisher.publisher_name}</td>
+                            <td>${publisher.location}</td>
+                            <td>${publisher.established_year}</td>
+                            <td></td><!-- Placeholder for delete button -->
+                        </tr>`;
+                    publishersList.append(row);
+                    
+                    const deleteButtonCell = $(`#publishRow-${publisher.publisher_id} td:last-child`);
+
+                    deleteButtonCell.append(createDeleteButton(publisher.publisher_id)); // Fixed the typo here
+                });
+            },
+            error: function (error) {
+                console.error('Error fetching publisher data:', error);
+            }
+        });
+        
+         // Function to update the displayed publishers based on the current page
+        function updateDisplayedPublishers() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            
+            // Hide all rows
+            $('#publisherList tr').hide();
+            
+            // Show only the rows for the current page
+            $('#publisherList tr').slice(startIndex, endIndex).show();
+        }
+        
+         // Initialize the displayed publishers and pagination
+        updateDisplayedPublishers();
+
+        // Handle pagination buttons
+        $('#prevPage').click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                updateDisplayedPublishers();
+            }
+        });
+
+        $('#nextPage').click(function () {
+            const totalRows = $('#publisherList tr').length;
+            const totalPages = Math.ceil(totalRows / itemsPerPage);
+
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateDisplayedPublishers();
+            }
+        });
+    </script>
+</body>
+</html>
